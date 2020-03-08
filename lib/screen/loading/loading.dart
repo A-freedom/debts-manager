@@ -9,7 +9,7 @@ class LoadingAction {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) =>
-        LoadingScreen(
+        LoadingScreenWithFuture(
           future: future,
         )
       ),

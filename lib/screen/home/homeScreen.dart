@@ -1,13 +1,11 @@
-
-
-
+import 'package:debts_manager/modules/customers.dart';
+import 'package:debts_manager/modules/sideBar.dart';
 import 'package:debts_manager/modules/themeColors.dart';
-import 'package:debts_manager/modules/user.dart';
-import 'package:debts_manager/services/auth.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:debts_manager/screen/loading/loadingScreen.dart';
+import 'package:debts_manager/services/authService.dart';
+import 'package:debts_manager/services/databaseService.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import 'UserWidget.dart';
 
@@ -17,65 +15,72 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  var level = 0;
-  var userList = getUser();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+
+  _showSnackBar(message) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
-    var user = Provider.of<FirebaseUser>(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(user.email),),
-      bottomNavigationBar: BottomAppBar(
-        elevation: 0.0,
-        child: ButtonBar(
-          alignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            IconButton(
-                onPressed: () => AuthService().signOut(),
-                icon: Icon(
-                  Icons.toc,
+    GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+    return SafeArea(
+      child: Scaffold(
+        key: _scaffoldKey,
+        drawer: Drawer(
+          child: SideBar(),
+        ),
+        bottomNavigationBar: BottomAppBar(
+          elevation: 0.0,
+          child: ButtonBar(
+            alignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              IconButton(
+                  onPressed: () => _scaffoldKey.currentState.openDrawer(),
+                  icon: Icon(
+                    Icons.toc,
 //                color: Colors.white,
-                )),
-            IconButton(
-                onPressed: () => null,
-                icon: Icon(
-                  Icons.more_vert,
+                  )),
+              IconButton(
+                  onPressed: () => AuthService(context: context).signOut(),
+                  icon: Icon(
+                    Icons.more_vert,
 //                  color: Colors.white
-                ))
-          ],
-        ),
-      ),
-      body: SafeArea(
-        child: ListView(
-          addAutomaticKeepAlives: false,
-          padding: const EdgeInsets.only(top: 20, bottom: 20),
-          children: userList
-              .map((user) => FlatButton(
-                    padding: EdgeInsets.all(0),
-                    child: UserWidget(
-                      user: user,
-                      status: false,
-                    ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/viewCustomer',
-                          arguments: {'user': user});
-//                Navigator.popAndPushNamed(context, '/userView');
-                    },
                   ))
-              .toList(),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        elevation: 0.0,
-        onPressed: () {
-          Navigator.pushNamed(context, '/addCustomer');
-        },
-        child: Icon(
-          Icons.add,
-//          color: secondaryTextColorD,
+        body: SafeArea(
+          child: StreamBuilder<Customers>(
+              stream: DatabaseService(context: context).customersStream,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return ListView(
+                    addAutomaticKeepAlives: false,
+                    padding: const EdgeInsets.only(top: 20, bottom: 20),
+                    children: snapshot.data.list
+                        .map((customer) => UserWidget(customer))
+                        .toList(),
+                  );
+                }
+                if (snapshot.hasError) {
+                  _showSnackBar('we have an error');
+                }
+                return LoadingScreen();
+              }),
         ),
+        floatingActionButton: FloatingActionButton(
+          elevation: 0.0,
+          onPressed: () {
+            Navigator.pushNamed(context, '/addCustomer');
+          },
+          child: Icon(
+            Icons.add,
+            color: secondaryTextColorD,
+          ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

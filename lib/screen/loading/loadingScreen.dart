@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
-class LoadingScreen extends StatelessWidget {
+class LoadingScreenWithFuture extends StatelessWidget {
   Future future;
-  LoadingScreen({this.future});
+  LoadingScreenWithFuture({this.future});
   @override
   Widget build(BuildContext context) {
 
@@ -27,3 +27,22 @@ class LoadingScreen extends StatelessWidget {
   }
 }
 
+
+class LoadingScreen extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+
+    return SafeArea(
+      child: Scaffold(
+        body: Center(
+          child: SpinKitCubeGrid(
+            color: Colors.white,
+            size: 80.0,
+          ),
+        ),
+      ),
+    );
+
+  }
+}

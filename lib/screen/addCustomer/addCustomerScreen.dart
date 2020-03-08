@@ -1,118 +1,98 @@
 import 'package:debts_manager/modules/themeColors.dart';
+import 'package:debts_manager/services/databaseService.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+class AddCustomerScreen extends StatelessWidget {
+  final GlobalKey<FormState> _formKey = GlobalKey();
+  var name , user, address ;
+  var _obscureText = false;
 
-class AddCustomerScreen extends StatefulWidget {
-  @override
-  _AddCustomerScreenState createState() => _AddCustomerScreenState();
-}
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
 
-class _AddCustomerScreenState extends State<AddCustomerScreen> {
-  GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  var name, user, address, img;
+  _showSnackBar(message) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
-    var inputStyle = TextStyle(
-      fontSize: 16,
-      letterSpacing: 2.1,
-    );
-    var mainImg = AssetImage("assets/pro.jpeg");
-    final width = MediaQuery.of(context).size.width;
-    final theme = Theme.of(context);
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(),
-        body: Container(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                  color: theme.primaryColorDark,
+    final wight = MediaQuery.of(context).size.width;
 
-                  padding: EdgeInsets.all(10.8),
-                  child: Center(
-                    child: CircleAvatar(
-                      radius: (width - (width / 1.68)) / 2,
-                      backgroundImage: mainImg,
-                    ),
-                  )),
-              Expanded(
-                flex: 168,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Form(
-                    key: _formKey,
-                    child: ListView(
-//                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: <Widget>[
-                        TextFormField(
-                          validator: (input) => (input != null || input == '')
-                              ? 'this isn\'t vail'
-                              : null,
-//                          onSaved: (input)=> user - input ,
-                          style: inputStyle,
-                          decoration: InputDecoration(
-                            icon: Icon(
-                              Icons.person_pin,
-                              size: 30,
-//                              color: Colors.white,
-                            ),
-                            labelText: 'user',
-                            labelStyle: inputStyle,
-                          ),
-                        ),
-                        TextFormField(
-                          validator: (input) => (input != null || input == '')
-                              ? 'this isn\'t vail'
-                              : null,
-//                          onSaved: (input)=> name - input ,
-                          style: inputStyle,
-                          decoration: InputDecoration(
-                            icon: Icon(
-                              Icons.account_box,
-                              size: 30,
-//                              color: Colors.white,
-                            ),
-                            labelText: 'name',
-                            labelStyle: inputStyle,
-                          ),
-                        ),
-                        TextFormField(
-                          validator: (input) => (input != null || input == '')
-                              ? 'this isn\'t vail'
-                              : null,
-//                          onSaved: (input)=> address - input ,
-                          style: inputStyle,
-                          decoration: InputDecoration(
-                            icon: Icon(
-                              Icons.pin_drop,
-                              size: 30,
-//                              color: Colors.white,
-                            ),
-                            labelText: 'address',
-                            labelStyle: inputStyle,
-                          ),
-                        ),
-                      ],
-                    ),
+    return Scaffold(
+      key: _scaffoldKey,
+        appBar: AppBar(
+          title: Text('add customer'),
+//          centerTitle: true,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: <Widget>[
+                Center(
+                  child: CircleAvatar(
+                    radius: (wight * 0.38) / 2,
+                    backgroundImage: NetworkImage(
+                        'https://images.unsplash.com/photo-1510832198440-a52376950479?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60'),
                   ),
                 ),
-              ),
-            ],
+                TextFormField(
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Please enter some text';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(hintText: 'USER'),
+                  onSaved: (user) => this.user = user,
+                ),
+                TextFormField(
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Please enter some text';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(hintText: 'NAME'),
+                  onSaved: (name) => this.name = name,
+                  obscureText: _obscureText,
+                ),
+                TextFormField(
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Please enter some text';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(hintText: 'ADRESS'),
+                  onSaved: (address) => this.address = address,
+                  obscureText: _obscureText,
+                ),
+              ],
+            ),
           ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            _formKey.currentState.validate();
+            if (_formKey.currentState.validate()) {
+              _formKey.currentState.save() ;
+              DatabaseService(context: context, listen: false)
+                  .addCustomer(data: {
+                'user': this.user,
+                'name': this.name,
+                'address': this.address,
+                'exp': DateTime.now() ,
+                'total':0,
+                'actions': List(),
+              }).then( (s)=> Navigator.pop(context)).catchError((err) => _showSnackBar(err.message)) ;
+            }
           },
           child: Icon(
-            Icons.done_outline,
-//            color: secondaryTextColorD,
+            Icons.done,
+            color: secondaryTextColorD,
           ),
-        ),
-      ),
-    );
+        ));
   }
 }
+
